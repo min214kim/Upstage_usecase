@@ -1,5 +1,6 @@
 import os
 import pickle
+import json
 import numpy as np
 from dotenv import load_dotenv
 from langchain_upstage import UpstageEmbeddings
@@ -19,49 +20,73 @@ def chunk_text(text, chunk_size=1000, chunk_overlap=200):
     )
     return text_splitter.split_text(text)
 
-def search(text):
+def get_original_data(file_path):
     """
-    FAISS를 사용하여 유사 사례 검색
-    Args:
-        text: 검색할 텍스트
-    Returns:
-        list: 검색 결과 리스트
+    원본 JSON 파일에서 데이터를 로드
     """
-    # FAISS 인덱스 경로
-    index_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "faiss_index")
-    if not os.path.exists(index_path):
-        raise FileNotFoundError(f"FAISS 인덱스 디렉토리를 찾을 수 없습니다: {index_path}")
-    
-    # Upstage 임베딩 초기화
-    embeddings = UpstageEmbeddings(
-        api_key=os.getenv("UPSTAGE_API_KEY"),
-        model="embedding-query"
-    )
-    
-    # FAISS 인덱스 로드 (pickle 파일 로드 허용)
-    vectorstore = FAISS.load_local(
-        index_path,
-        embeddings,
-        allow_dangerous_deserialization=True  # pickle 파일 로드 허용
-    )
-    print(f"Vectorstore type: {type(vectorstore)}")  # 디버깅: vectorstore 타입 확인
-    
-    # 검색 수행
-    k = 3  # 상위 3개 결과
-    results = vectorstore.similarity_search_with_score(text, k=k)
-    
-    # 결과 포맷팅
-    formatted_results = []
-    for doc, score in results:
-        formatted_results.append({
-            "text": doc.page_content,  # 문서 내용
-            "details": doc.metadata.get("details", ""),  # 메타데이터에서 상세 정보
-            "date": doc.metadata.get("date", ""),  # 메타데이터에서 날짜
-            "file_path": doc.metadata.get("file_path", ""),  # 메타데이터에서 파일 경로
-            "score": float(1 / (1 + score))  # 거리를 유사도 점수로 변환
-        })
-    
-    return formatted_results
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"원본 파일 로드 중 오류 발생: {str(e)}")
+        return None
+
+def search(query_text, k=3):
+    """
+    FAISS를 사용하여 유사 문서 검색
+    """
+    try:
+        # FAISS 인덱스 로드
+        embeddings = UpstageEmbeddings(
+            api_key=os.getenv("UPSTAGE_API_KEY"),
+            model="embedding-query"
+        )
+        vectorstore = FAISS.load_local(
+            "faiss_index", 
+            embeddings,
+            allow_dangerous_deserialization=True  # pickle 파일 로드 허용
+        )
+        
+        # 검색 수행
+        results = vectorstore.similarity_search_with_score(query_text, k=k)
+        
+        # 결과 포맷팅
+        formatted_results = []
+        for doc, score in results:
+            source = doc.metadata.get('source', '')
+            if source:
+                # 원본 파일 경로에서 파일명 추출
+                file_name = os.path.basename(source)
+                # processed 폴더에서 원본 데이터 로드
+                original_data = get_original_data(os.path.join("processed", file_name))
+                
+                if original_data:
+                    result = {
+                        'text': doc.page_content,
+                        'score': float(score),
+                        'source': source,
+                        'id': original_data.get('id', ''),
+                        'info': original_data.get('info', {}),
+                        '문항별정보': original_data.get('문항별정보', {})
+                    }
+                else:
+                    result = {
+                        'text': doc.page_content,
+                        'score': float(score),
+                        'source': source
+                    }
+            else:
+                result = {
+                    'text': doc.page_content,
+                    'score': float(score)
+                }
+            
+            formatted_results.append(result)
+        
+        return formatted_results
+    except Exception as e:
+        print(f"검색 중 오류 발생: {str(e)}")
+        return []
 
 def embed(text):
     """

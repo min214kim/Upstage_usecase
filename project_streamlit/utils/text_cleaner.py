@@ -24,7 +24,7 @@ def process_chunk(chunk, api_key):
     """
     단일 청크 처리
     """
-    chat = ChatUpstage(api_key=api_key, model="solar-pro", temperature=0.2)
+    chat = ChatUpstage(api_key=api_key, model="solar-mini", temperature=0.2)
     
     prompt = f"""
     다음 상담 기록에서 개인정보를 익명화하고, 불필요한 특수문자나 공백을 정리해주세요.
@@ -63,31 +63,46 @@ def clean(text, progress_callback=None):
     chunks = chunk_text(text)
     cleaned_chunks = [None] * len(chunks)  # 결과를 저장할 리스트
     
-    # worker 수를 API 키 수의 2배로 설정 (최대 청크 수까지)
-    max_workers = min(len(api_keys) * 2, len(chunks))
-    print(f"총 청크 수: {len(chunks)}, Worker 수: {max_workers}")
+    # 청크를 API 키 수에 맞게 분배
+    chunk_distribution = [[] for _ in range(len(api_keys))]
+    for i, chunk in enumerate(chunks):
+        chunk_distribution[i % len(api_keys)].append((i, chunk))
     
-    # 병렬 처리
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # 각 청크에 대해 API 키를 순환하면서 작업 제출
-        future_to_chunk = {
-            executor.submit(process_chunk, chunk, api_keys[i % len(api_keys)]): i
-            for i, chunk in enumerate(chunks)
+    print(f"총 청크 수: {len(chunks)}, API 키 수: {len(api_keys)}")
+    
+    # 각 API 키별로 병렬 처리
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(api_keys)) as executor:
+        # 각 API 키에 할당된 청크들을 처리하는 함수
+        def process_chunks_for_api(api_key, assigned_chunks):
+            results = []
+            for chunk_index, chunk in assigned_chunks:
+                try:
+                    result = process_chunk(chunk, api_key)
+                    results.append((chunk_index, result))
+                    print(f"청크 {chunk_index + 1}/{len(chunks)} 처리 완료")
+                except Exception as e:
+                    print(f"청크 {chunk_index + 1} 처리 중 오류 발생: {str(e)}")
+                    results.append((chunk_index, f"[오류 발생: {str(e)}]"))
+            return results
+        
+        # 각 API 키에 청크 처리 작업 제출
+        future_to_api = {
+            executor.submit(process_chunks_for_api, api_key, chunks): api_key
+            for api_key, chunks in zip(api_keys, chunk_distribution)
         }
         
         # 완료된 작업 처리
         completed = 0
-        for future in concurrent.futures.as_completed(future_to_chunk):
-            chunk_index = future_to_chunk[future]
+        for future in concurrent.futures.as_completed(future_to_api):
             try:
-                cleaned_chunks[chunk_index] = future.result()
-                completed += 1
-                if progress_callback:
-                    progress_callback(completed)
-                print(f"청크 {chunk_index + 1}/{len(chunks)} 처리 완료")
+                results = future.result()
+                for chunk_index, result in results:
+                    cleaned_chunks[chunk_index] = result
+                    completed += 1
+                    if progress_callback:
+                        progress_callback(completed)
             except Exception as e:
-                print(f"청크 {chunk_index + 1} 처리 중 오류 발생: {str(e)}")
-                cleaned_chunks[chunk_index] = f"[오류 발생: {str(e)}]"
+                print(f"API 키 {future_to_api[future]} 처리 중 오류 발생: {str(e)}")
     
     # 청크들을 하나의 텍스트로 합치기
     return "\n".join(cleaned_chunks)
