@@ -1,0 +1,94 @@
+import os
+import concurrent.futures
+from dotenv import load_dotenv
+from langchain_upstage import ChatUpstage
+from langchain_core.messages import HumanMessage
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+import pickle
+import numpy as np
+
+load_dotenv()
+
+def chunk_text(text, chunk_size=1000, chunk_overlap=100):
+    """
+    텍스트를 청크로 분할
+    """
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        length_function=len,
+    )
+    return text_splitter.split_text(text)
+
+def process_chunk(chunk, api_key):
+    """
+    단일 청크 처리
+    """
+    chat = ChatUpstage(api_key=api_key, model="solar-mini")
+    
+    prompt = f"""
+    다음 상담 기록에서 개인정보를 익명화하고, 불필요한 특수문자나 공백을 정리해주세요.
+    이름, 학교, 지역명 등은 모두 [이름], [학교], [지역] 등으로 마스킹 처리해주세요.
+    
+    상담 기록:
+    {chunk}
+    """
+    
+    messages = [HumanMessage(content=prompt)]
+    response = chat.invoke(messages)
+    return response.content
+
+def clean(text, progress_callback=None):
+    """
+    텍스트 정제 및 익명화 (병렬 처리)
+    """
+    # API 키 목록 가져오기
+    api_keys = []
+    i = 1
+    while True:
+        key = os.getenv(f"UPSTAGE_API_KEY_{i}")
+        if not key:
+            break
+        api_keys.append(key)
+        i += 1
+    
+    # 기본 API 키 추가
+    if not api_keys:
+        api_keys.append(os.getenv("UPSTAGE_API_KEY"))
+    
+    if not api_keys:
+        raise ValueError("UPSTAGE_API_KEY 환경 변수가 설정되지 않았습니다.")
+    
+    # 텍스트를 청크로 분할
+    chunks = chunk_text(text)
+    cleaned_chunks = [None] * len(chunks)  # 결과를 저장할 리스트
+    
+    # worker 수를 API 키 수의 2배로 설정 (최대 청크 수까지)
+    max_workers = min(len(api_keys) * 2, len(chunks))
+    print(f"총 청크 수: {len(chunks)}, Worker 수: {max_workers}")
+    
+    # 병렬 처리
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # 각 청크에 대해 API 키를 순환하면서 작업 제출
+        future_to_chunk = {
+            executor.submit(process_chunk, chunk, api_keys[i % len(api_keys)]): i
+            for i, chunk in enumerate(chunks)
+        }
+        
+        # 완료된 작업 처리
+        completed = 0
+        for future in concurrent.futures.as_completed(future_to_chunk):
+            chunk_index = future_to_chunk[future]
+            try:
+                cleaned_chunks[chunk_index] = future.result()
+                completed += 1
+                if progress_callback:
+                    progress_callback(completed)
+                print(f"청크 {chunk_index + 1}/{len(chunks)} 처리 완료")
+            except Exception as e:
+                print(f"청크 {chunk_index + 1} 처리 중 오류 발생: {str(e)}")
+                cleaned_chunks[chunk_index] = f"[오류 발생: {str(e)}]"
+    
+    # 청크들을 하나의 텍스트로 합치기
+    return "\n".join(cleaned_chunks)
+
