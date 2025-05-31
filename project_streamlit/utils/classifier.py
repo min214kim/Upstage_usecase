@@ -11,12 +11,12 @@ def classify(summary, similar_cases):
     """
     상담 분류 및 위험도 평가
     """
-    chat = ChatUpstage(api_key=os.getenv("UPSTAGE_API_KEY"), model="solar-pro")
+    chat = ChatUpstage(api_key=os.getenv("UPSTAGE_API_KEY"), model="solar-mini", temperature=0.2)
     
     # 유사 사례 정보 포맷팅
     similar_cases_text = "\n".join([
-        f"- {case['text']} (유사도: {case['score']:.2f})"
-        for case in similar_cases
+        f"사례 {i+1}:\n{case['text']}\n상세: {case['details']}\n"
+        for i, case in enumerate(similar_cases)
     ])
     
     prompt = f"""
