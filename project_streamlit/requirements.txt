@@ -11,9 +11,5 @@ langchain-upstage>=0.0.20
 # Vector DB
 faiss-cpu>=1.7.4
 
-# Used in vector search and text splitting
-tqdm>=4.66.0
-sentence-transformers>=2.2.2
-
 # Email support
 secure-smtplib
