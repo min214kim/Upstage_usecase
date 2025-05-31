@@ -11,7 +11,7 @@ def classify(summary, similar_cases):
     """
     상담 분류 및 위험도 평가
     """
-    chat = ChatUpstage(api_key=os.getenv("UPSTAGE_API_KEY"), model="solar-mini", temperature=0.2)
+    chat = ChatUpstage(api_key=os.getenv("UPSTAGE_API_KEY"), model="solar-pro", temperature=0.2)
     
     # 유사 사례 정보 포맷팅
     similar_cases_text = "\n".join([

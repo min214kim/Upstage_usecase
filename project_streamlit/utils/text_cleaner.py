@@ -24,7 +24,7 @@ def process_chunk(chunk, api_key):
     """
     단일 청크 처리
     """
-    chat = ChatUpstage(api_key=api_key, model="solar-mini", temperature=0.2)
+    chat = ChatUpstage(api_key=api_key, model="solar-pro", temperature=0.2)
     
     prompt = f"""
     다음 상담 기록에서 개인정보를 익명화하고, 불필요한 특수문자나 공백을 정리해주세요.
