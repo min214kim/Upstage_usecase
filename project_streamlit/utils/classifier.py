@@ -1,84 +1,64 @@
 import os
-import requests
 import json
+from datetime import datetime
 from dotenv import load_dotenv
 from langchain_upstage import ChatUpstage
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
-import json
-import re
+from langchain_core.messages import HumanMessage
 
 load_dotenv()
 
-API_KEY = os.getenv("UPSTAGE_API_KEY")
-llm = ChatUpstage(api_key=API_KEY, model="solar-pro")
-
-
-print(API_KEY)
-prompt = PromptTemplate(
-    input_variables=["user_summary", "case_descriptions"],
-    template="""
-다음은 사용자 상담 요약입니다:
-{user_summary}
-
-유사한 과거 상담 사례들:
-{case_descriptions}
-
-아래 JSON 스키마(예시)처럼, 상담을 분류해주세요.
-스키마:
-```json
-  "type": "<string: 상담유형>",
-  "risk_level": <integer 1-5>,
-  "abuse_type": "<string or 해당없음>"
-```
-위기단계가 높을수록 더 위험한 상황입니다.
-학대 정황이 없으면 "해당없음"을 반환해주세요.
-
-결과 JSON:
-"""
-)
-
-chain = LLMChain(llm=llm, prompt=prompt)
-
-def classify(user_summary, similar_cases):
+def classify(summary, similar_cases):
     """
-    Solar LLM을 사용하여 텍스트를 요약하고 관련 태그를 생성합니다.
-    -  input : 사용자 text에 대한 요약 (text), 유사 사례 N건 (list)
-    -  output : json
+    상담 분류 및 위험도 평가
     """
-
-    print("------classify함수------")
-
-    case_descriptions = "\n".join([
-        f"{i+1}. 임상: {c.get('임상가 종합소견', '').strip()}, "
-        f"가정환경: {c.get('가정환경', '').strip()}, "
-        f"유형: {c.get('유형구분', '').strip()}, "
-        f"위기: {c.get('위기단계', '').strip()}, "
-        f"학대: {c.get('학대의심', '').strip()}"
-        for i, c in enumerate(similar_cases)
+    chat = ChatUpstage(api_key=os.getenv("UPSTAGE_API_KEY"), model="solar-pro")
+    
+    # 유사 사례 정보 포맷팅
+    similar_cases_text = "\n".join([
+        f"- {case['text']} (유사도: {case['score']:.2f})"
+        for case in similar_cases
     ])
-
-    # LLM 호출
-    raw = chain.invoke({
-        "user_summary": user_summary,
-        "case_descriptions": case_descriptions
-    })
-    print("▶ raw text result:", raw['text'])
-
-    # chain.invoke may return a dict or a plain string
-    text = raw["text"] if isinstance(raw, dict) and "text" in raw else raw
-
-    # 코드펜스 제거 
-    text = re.sub(r'```(?:json)?', '', text).strip()
-
-    # 첫 번째 JSON 블록만 추출
-    m = re.search(r'(\{[\s\S]*?\})', text)
-    if not m:
-        raise ValueError(f"JSON 파싱 실패, 원본 응답:\n{text}")
-    json_str = m.group(1)
-
-    # JSON 파싱
+    
+    prompt = f"""
+    다음 상담 요약과 유사 사례를 분석하여 JSON 형식으로 분류해주세요.
+    반드시 아래 형식의 JSON으로 응답해주세요. 다른 설명은 하지 마세요.
+    
+    {{
+        "type": "상담 유형 (일반/위기/응급)",
+        "risk_level": "위험도 (1-5)",
+        "abuse_type": "학대 유형 (해당없음/신체적/정서적/성적/방임)",
+        "timestamp": "현재 시간 (YYYY-MM-DD HH:MM:SS)"
+    }}
+    
+    상담 요약:
+    {json.dumps(summary, ensure_ascii=False, indent=2)}
+    
+    유사 사례:
+    {similar_cases_text}
+    """
+    
+    messages = [HumanMessage(content=prompt)]
+    response = chat.invoke(messages)
+    
     try:
-        return json.loads(json_str)
+        # 응답에서 JSON 부분만 추출
+        response_text = response.content.strip()
+        # JSON 형식이 아닌 경우를 대비해 응답을 정리
+        if response_text.startswith("```json"):
+            response_text = response_text[7:]
+        if response_text.endswith("```"):
+            response_text = response_text[:-3]
+        response_text = response_text.strip()
+        
+        # JSON 파싱
+        classification = json.loads(response_text)
+        
+        # timestamp가 없는 경우 현재 시간으로 설정
+        if "timestamp" not in classification:
+            classification["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+        return classification
     except json.JSONDecodeError as e:
-        raise ValueError(f"파싱된 JSON이 유효하지 않습니다:\n{json_str}\n\n원본 응답:\n{text}") from e
+        print(f"JSON 파싱 오류: {str(e)}")
+        print(f"원본 응답: {response_text}")
+        raise ValueError("분류 결과를 JSON으로 파싱할 수 없습니다.")
