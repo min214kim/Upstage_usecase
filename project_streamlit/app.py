@@ -55,17 +55,18 @@ if uploaded_file:
         print("🔍 유사 사례 검색 중...")
         all_results = []
         for chunk in chunks:
-            # print(chunk)
             # 텍스트를 직접 전달
             chunk_results = search_faiss.search(chunk)
             all_results.extend(chunk_results)
         
         # 결과를 점수별로 정렬하고 중복 제거
-        seen_texts = set()
+        seen_docs = set()  # (file_path, text) 튜플을 저장
         similar_cases = []
         for result in sorted(all_results, key=lambda x: x['score'], reverse=True):
-            if result['text'] not in seen_texts:
-                seen_texts.add(result['text'])
+            # 파일 경로와 텍스트 내용을 함께 사용하여 중복 체크
+            doc_key = (result['file_path'], result['text'])
+            if doc_key not in seen_docs:
+                seen_docs.add(doc_key)
                 similar_cases.append(result)
                 if len(similar_cases) >= 3:  # 상위 3개 결과만 유지
                     break
