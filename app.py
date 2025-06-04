@@ -5,6 +5,19 @@ from langchain.globals import set_verbose
 import pickle
 import json
 
+import logging
+logger = logging.getLogger(__name__)
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        # logging.FileHandler("app.log"),      # Save logs to file
+        logging.StreamHandler()              # Print logs to console
+    ]
+)
+
 # LangChain verbose 설정
 set_verbose(True)
 
@@ -23,6 +36,8 @@ if uploaded_file:
     # 진행 상태 표시를 위한 컨테이너
     progress_container = st.empty()
     status_container = st.empty()
+
+    tab1, tab2, tab3 = st.tabs(["🧠 상담 요약", "🔍 유사 사례", "🕒 처리 로그"])
 
     try:
         # 2. 문서 파싱
@@ -109,86 +124,89 @@ if uploaded_file:
         # -----------------------
 
         # 원본 텍스트 (접을 수 있는 섹션)
-        with st.expander("📄 원본 텍스트 보기"):
-            st.text_area("정제된 텍스트", clean_text, height=200)
+        with tab1:
+            with st.expander("📄 원본 텍스트 보기"):
+                st.text_area("정제된 텍스트", clean_text, height=200)
 
-        # 구조화된 요약 결과
-        st.subheader("🧠 상담 요약 결과")
-        st.write(summary)  # 요약 텍스트를 그대로 표시
+            # 구조화된 요약 결과
+            st.subheader("🧠 상담 요약 결과")
+            st.write(summary)  # 요약 텍스트를 그대로 표시
 
         # 유사사례 요약 카드
-        st.subheader("🔍 유사 사례")
-        for i, case in enumerate(similar_cases):
-            with st.expander(f"유사 사례 {i+1} (유사도: {case.get('score', 0):.2f})"):
-                st.markdown(
-                    f"""
-                    <div style="border:1px solid #ddd; border-radius:12px; padding:16px; margin:8px;">
-                        <h4>상담 내용</h4>
-                        <p>{case.get('text', '내용 없음')}</p>
-                        
-                        <h4>상세 정보</h4>
-                        <p><b>ID:</b> {case.get('id', '정보 없음')}</p>
-                        <p><b>상담일:</b> {case.get('info', {}).get('상담일', '정보 없음')}</p>
-                        <p><b>상담자:</b> {case.get('info', {}).get('상담자', '정보 없음')}</p>
-                        <p><b>상담 유형:</b> {case.get('info', {}).get('상담유형', '정보 없음')}</p>
-                        <p><b>위험도:</b> {case.get('info', {}).get('위험도', '정보 없음')}</p>
-                        <p><b>학대 유형:</b> {case.get('info', {}).get('학대유형', '정보 없음')}</p>
-                        
-                        <h4>문항별 정보</h4>
-                        <pre style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">
-{json.dumps(case.get('문항별정보', []), ensure_ascii=False, indent=2)}
-                        </pre>
-                    </div>
-                    """, unsafe_allow_html=True
-                )
-                
-                # 문서 다운로드 버튼
-                source = case.get('source')
-                if source and os.path.exists(source):
-                    with open(source, 'rb') as f:
-                        file_data = f.read()
-                        st.download_button(
-                            label="📥 원본 문서 다운로드",
-                            data=file_data,
-                            file_name=os.path.basename(source),
-                            mime="application/json"
-                        )
+        with tab2:
+            st.subheader("🔍 유사 사례")
+            for i, case in enumerate(similar_cases):
+                with st.expander(f"유사 사례 {i+1} (유사도: {case.get('score', 0):.2f})"):
+                    st.markdown(
+                        f"""
+                        <div style="border:1px solid #ddd; border-radius:12px; padding:16px; margin:8px;">
+                            <h4>상담 내용</h4>
+                            <p>{case.get('text', '내용 없음')}</p>
+                            
+                            <h4>상세 정보</h4>
+                            <p><b>ID:</b> {case.get('id', '정보 없음')}</p>
+                            <p><b>상담일:</b> {case.get('info', {}).get('상담일', '정보 없음')}</p>
+                            <p><b>상담자:</b> {case.get('info', {}).get('상담자', '정보 없음')}</p>
+                            <p><b>상담 유형:</b> {case.get('info', {}).get('상담유형', '정보 없음')}</p>
+                            <p><b>위험도:</b> {case.get('info', {}).get('위험도', '정보 없음')}</p>
+                            <p><b>학대 유형:</b> {case.get('info', {}).get('학대유형', '정보 없음')}</p>
+                            
+                            <h4>문항별 정보</h4>
+                            <pre style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">
+    {json.dumps(case.get('문항별정보', []), ensure_ascii=False, indent=2)}
+                            </pre>
+                        </div>
+                        """, unsafe_allow_html=True
+                    )
+                    
+                    # 문서 다운로드 버튼
+                    source = case.get('source')
+                    if source and os.path.exists(source):
+                        with open(source, 'rb') as f:
+                            file_data = f.read()
+                            st.download_button(
+                                label="📥 원본 문서 다운로드",
+                                data=file_data,
+                                file_name=os.path.basename(source),
+                                mime="application/json"
+                            )
 
         # -----------------------
         # 7. 위험 알림
-        if classification.get("emergency_level", 0) >= 3 or classification.get("abuse_type", "해당없음") != "해당없음":
-            with st.spinner("🚨 위험 알림 발송 중..."):
-                mailer.send_alert({
-                    "type": classification.get("problem_type", ""),
-                    "risk_level": classification.get("emergency_level", 0),
-                    "abuse_type": classification.get("abuse_type", "해당없음"),
-                    "timestamp": classification.get("timestamp", "")
-                })
-                st.warning("🚨 위험 상담 감지됨! 관리자에게 알림 발송됨")
-
-        # 8. 로그
-        st.subheader("🕒 처리 로그")
-        log_container = st.container()
-        with log_container:
-            st.markdown("### 📊 분석 결과")
-            st.markdown(f"""
-            - **상담 유형**: {classification.get('type', '분류되지 않음')}
-            - **위험도**: {classification.get('risk_level', '0')}/5
-            - **학대 유형**: {classification.get('abuse_type', '해당없음')}
-            - **처리 시간**: {classification.get('timestamp', '')}
-            """)
-            
+        with tab3:
             if classification.get("emergency_level", 0) >= 3 or classification.get("abuse_type", "해당없음") != "해당없음":
-                st.markdown("### 🚨 위험 알림")
+                with st.spinner("🚨 위험 알림 발송 중..."):
+                    mailer.send_alert({
+                        "type": classification.get("problem_type", ""),
+                        "risk_level": classification.get("emergency_level", 0),
+                        "abuse_type": classification.get("abuse_type", "해당없음"),
+                        "timestamp": classification.get("timestamp", "")
+                    })
+                    st.warning("🚨 위험 상담 감지됨! 관리자에게 알림 발송됨")
+
+            # 8. 로그
+            st.subheader("🕒 처리 로그")
+            log_container = st.container(border=True)
+            with log_container:
+                st.markdown("### 📊 분석 결과")
                 st.markdown(f"""
-                - **알림 발송**: ✅ 완료
-                - **발송 시간**: {classification.get('timestamp', '')}
-                - **알림 유형**: {classification.get('problem_type', '')}
-                - **위험 수준**: {classification.get('risk_level', '0')}/5
+                - **상담 유형**: {classification.get('type', '분류되지 않음')}
+                - **위험도**: {classification.get('risk_level', '0')}/5
+                - **학대 유형**: {classification.get('abuse_type', '해당없음')}
+                - **처리 시간**: {classification.get('timestamp', '')}
                 """)
-            else:
-                st.markdown("### ✅ 정상 처리")
-                st.markdown("위험 수준이 낮아 알림이 발송되지 않았습니다.")
+                
+                if classification.get("emergency_level", 0) >= 3 or classification.get("abuse_type", "해당없음") != "해당없음":
+                    st.markdown("### 🚨 위험 알림")
+                    st.markdown(f"""
+                    - **알림 발송**: ✅ 완료
+                    - **발송 시간**: {classification.get('timestamp', '')}
+                    - **알림 유형**: {classification.get('problem_type', '')}
+                    - **위험 수준**: {classification.get('risk_level', '0')}/5
+                    """)
+                else:
+                    st.markdown("### ✅ 정상 처리")
+                    st.markdown("위험 수준이 낮아 알림이 발송되지 않았습니다.")
 
     except FileNotFoundError as e:
         st.error(f"❌ 오류 발생: {str(e)}")
