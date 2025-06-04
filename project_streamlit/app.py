@@ -53,24 +53,45 @@ if uploaded_file:
         progress_container.progress(60, "요약 완료")
 
         # 5. 유사 사례 검색
-        print("🔍 유사 사례 검색 중...")
+        status_container.info("🔍 유사 사례 검색 중...")
         all_results = []
-        for chunk in chunks:
-            # 텍스트를 직접 전달
-            chunk_results = search_faiss.search(chunk)
-            all_results.extend(chunk_results)
         
-        # 결과를 점수별로 정렬하고 중복 제거
-        seen_docs = set()  # (file_path, text) 튜플을 저장
-        similar_cases = []
-        for result in sorted(all_results, key=lambda x: x.get('score', 0), reverse=True):
-            # 파일 경로와 텍스트 내용을 함께 사용하여 중복 체크
-            doc_key = (result.get('file_path', ''), result.get('text', ''))
-            if doc_key not in seen_docs:
-                seen_docs.add(doc_key)
-                similar_cases.append(result)
-                if len(similar_cases) >= 3:  # 상위 3개 결과만 유지
-                    break
+        # 각 청크별 검색 결과 수집
+        for i, chunk in enumerate(chunks):
+            try:
+                chunk_results = search_faiss.search(chunk)
+                if chunk_results:  # 결과가 있는 경우만 추가
+                    all_results.extend(chunk_results)
+                # 진행률 업데이트
+                chunk_progress = ((i + 1) / len(chunks)) * 20
+                progress_container.progress(60 + int(chunk_progress), f"유사 사례 검색 중... ({i+1}/{len(chunks)})")
+            except Exception as e:
+                st.error(f"청크 {i+1} 검색 중 오류 발생: {str(e)}")
+                continue
+        
+        # 결과가 없는 경우 처리
+        if not all_results:
+            st.warning("유사 사례를 찾을 수 없습니다.")
+            similar_cases = []
+        else:
+            # 결과를 점수별로 정렬하고 중복 제거
+            seen_docs = set()  # (file_path, text) 튜플을 저장
+            similar_cases = []
+            
+            # 점수 기준 정렬 (높은 점수가 더 유사함)
+            sorted_results = sorted(all_results, key=lambda x: x.get('score', 0), reverse=True)
+            
+            for result in sorted_results:
+                if not isinstance(result, dict):  # 결과 형식 검증
+                    continue
+                    
+                # 파일 경로와 텍스트 내용을 함께 사용하여 중복 체크
+                doc_key = (result.get('file_path', ''), result.get('text', ''))
+                if doc_key not in seen_docs and doc_key[0] and doc_key[1]:  # 빈 값 제외
+                    seen_docs.add(doc_key)
+                    similar_cases.append(result)
+                    if len(similar_cases) >= 3:  # 상위 3개 결과만 유지
+                        break
         
         progress_container.progress(80, "유사 사례 검색 완료")
 
