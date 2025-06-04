@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 import json
 import time
 from pathlib import Path
@@ -7,12 +8,14 @@ from langchain_upstage import UpstageEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.docstore.document import Document
 
+load_dotenv()
+
 def create_faiss_vector_db(json_dir: str, output_index_path: str):
     folder = Path(json_dir)
 
     # ❶ Upstage 임베딩 초기화
     embeddings = UpstageEmbeddings(
-        api_key="up_E1VgeiWjyyhBKjwtTh4mX47akMJ2t",  # 여기에 본인의 API 키 입력
+        api_key=os.getenv("UPSTAGE_API_KEY"),  # 여기에 본인의 API 키 입력
         model="embedding-query"
     )
 
