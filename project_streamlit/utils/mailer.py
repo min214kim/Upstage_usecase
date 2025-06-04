@@ -3,7 +3,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
-
+import streamlit as st 
 load_dotenv()
 
 def send_alert(classification):
@@ -11,11 +11,11 @@ def send_alert(classification):
     위험 알림 메일 발송
     """
     # 메일 서버 설정
-    smtp_server = os.getenv("SMTP_SERVER")
-    smtp_port = int(os.getenv("SMTP_PORT"))
-    sender_email = os.getenv("SENDER_EMAIL")
-    sender_password = os.getenv("SENDER_PASSWORD")
-    receiver_email = os.getenv("RECEIVER_EMAIL")
+    smtp_server = st.secrets["SMTP_SERVER"]
+    smtp_port = int(st.secrets["SMTP_PORT"])
+    sender_email = st.secrets["SENDER_EMAIL"]
+    sender_password = st.secrets["SENDER_PASSWORD"]
+    receiver_email = st.secrets["RECEIVER_EMAIL"]
     
     # 메일 내용 구성
     msg = MIMEMultipart()

@@ -3,6 +3,7 @@ import json
 from dotenv import load_dotenv
 from langchain_upstage import ChatUpstage
 from langchain_core.messages import HumanMessage
+import streamllit as st 
 
 load_dotenv()
 
@@ -10,7 +11,7 @@ def summarize(text):
     """
     상담 내용을 요약
     """
-    chat = ChatUpstage(api_key=os.getenv("UPSTAGE_API_KEY"), model="solar-pro", temperature=0.2)
+    chat = ChatUpstage(api_key=st.secrets["UPSTAGE_API_KEY"], model="solar-pro", temperature=0.2)
     
     prompt = f"""
     다음 상담 기록을 분석하여 구조화된 형식으로 요약해주세요.

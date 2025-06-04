@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from langchain_upstage import UpstageEmbeddings
+import streamlit as st
 
 load_dotenv()
 
@@ -11,7 +12,7 @@ def embed(text):
         text: 문자열 또는 문자열 리스트
     """
     embeddings = UpstageEmbeddings(
-        api_key=os.getenv("UPSTAGE_API_KEY"),
+        api_key=st.secrets["UPSTAGE_API_KEY"],
         model="embedding-query"
     )
     
