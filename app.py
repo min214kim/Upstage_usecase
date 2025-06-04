@@ -86,7 +86,7 @@ if uploaded_file:
                     continue
                     
                 # 파일 경로와 텍스트 내용을 함께 사용하여 중복 체크
-                doc_key = (result.get('file_path', ''), result.get('text', ''))
+                doc_key = (result.get('source', ''), result.get('text', ''))
                 if doc_key not in seen_docs and doc_key[0] and doc_key[1]:  # 빈 값 제외
                     seen_docs.add(doc_key)
                     similar_cases.append(result)
