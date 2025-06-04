@@ -5,7 +5,7 @@ import numpy as np
 
 from langchain_upstage import UpstageEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 import streamlit as st 
 
 
