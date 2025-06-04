@@ -28,7 +28,6 @@ def classify(summary, similar_cases):
         "type": "상담 유형 (일반/위기/응급)",
         "risk_level": "위험도 (1-5)",
         "abuse_type": "학대 유형 (해당없음/신체적/정서적/성적/방임)",
-        "timestamp": "현재 시간 (YYYY-MM-DD HH:MM:SS)"
     }}
     
     상담 요약:
@@ -54,9 +53,8 @@ def classify(summary, similar_cases):
         # JSON 파싱
         classification = json.loads(response_text)
         
-        # timestamp가 없는 경우 현재 시간으로 설정
-        if "timestamp" not in classification:
-            classification["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # timestamp 직접 설정
+        classification["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
         return classification
     except json.JSONDecodeError as e:
