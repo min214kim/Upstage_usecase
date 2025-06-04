@@ -3,7 +3,7 @@ import json
 from dotenv import load_dotenv
 from langchain_upstage import ChatUpstage
 from langchain_core.messages import HumanMessage
-import streamllit as st 
+import streamlit as st 
 
 load_dotenv()
 
