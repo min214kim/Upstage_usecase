@@ -1,11 +1,10 @@
 import os
 import json
-from dotenv import load_dotenv
 from langchain_upstage import ChatUpstage
 from langchain_core.messages import HumanMessage
 import streamlit as st 
 
-load_dotenv()
+
 
 def summarize(text):
     """

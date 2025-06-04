@@ -1,6 +1,5 @@
 import os
 import concurrent.futures
-from dotenv import load_dotenv
 from langchain_upstage import ChatUpstage
 from langchain_core.messages import HumanMessage
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -8,7 +7,6 @@ import pickle
 import numpy as np
 import streamlit as st 
 
-load_dotenv()
 
 def chunk_text(text, chunk_size=1000, chunk_overlap=100):
     """

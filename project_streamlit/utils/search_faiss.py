@@ -2,13 +2,12 @@ import os
 import pickle
 import json
 import numpy as np
-from dotenv import load_dotenv
+
 from langchain_upstage import UpstageEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 import streamlit as st 
 
-load_dotenv()
 
 def chunk_text(text, chunk_size=1000, chunk_overlap=200):
     """

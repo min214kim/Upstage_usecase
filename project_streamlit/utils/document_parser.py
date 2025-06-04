@@ -1,9 +1,7 @@
 import os
 import tempfile
-from dotenv import load_dotenv
 from langchain_upstage import UpstageDocumentParseLoader
 
-load_dotenv()
 
 def parse(file):
     """

@@ -1,9 +1,8 @@
 import os
-from dotenv import load_dotenv
 from langchain_upstage import UpstageEmbeddings
 import streamlit as st
 
-load_dotenv()
+
 
 def embed(text):
     """
