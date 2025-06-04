@@ -67,7 +67,6 @@ def search(query_text, k=3):
     try:
         # 검색 수행
         results = vectorstore.similarity_search_with_score(query_text, k=k)
-        logger.info(f"Search returned {len(results)} results: {results}")
 
         # 결과 포맷팅
         formatted_results = []
