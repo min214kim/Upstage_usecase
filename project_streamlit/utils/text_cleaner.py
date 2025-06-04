@@ -47,7 +47,7 @@ def clean(text, progress_callback=None):
     api_keys = []
     i = 1
     while True:
-        key = st.secrets[f"UPSTAGE_API_KEY_{i}"]
+        key = st.secrets.get(f"UPSTAGE_API_KEY_{i}")
         if not key:
             break
         api_keys.append(key)
@@ -55,7 +55,7 @@ def clean(text, progress_callback=None):
     
     # 기본 API 키 추가
     if not api_keys:
-        api_keys.append(st.secrets["UPSTAGE_API_KEY"])
+        api_keys.append(st.secrets.get("UPSTAGE_API_KEY"))
     
     if not api_keys:
         raise ValueError("UPSTAGE_API_KEY 환경 변수가 설정되지 않았습니다.")
