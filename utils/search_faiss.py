@@ -8,6 +8,35 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 import streamlit as st 
 
+import logging
+logger = logging.getLogger(__name__)
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        # logging.FileHandler("app.log"),      # Save logs to file
+        logging.StreamHandler()              # Print logs to console
+    ]
+)
+
+# FAISS 인덱스 로드
+embeddings = UpstageEmbeddings(
+    api_key=st.secrets["UPSTAGE_API_KEY"],
+    model="embedding-query"
+)
+
+if os.path.exists("faiss_index/index.faiss") and os.path.exists("faiss_index/index.pkl"):
+    vectorstore = FAISS.load_local(
+        "faiss_index", 
+        embeddings,
+        allow_dangerous_deserialization=True
+    )
+    logger.info(f"Index size: {vectorstore.index.ntotal}")
+else:
+    st.error("FAISS index not found. Please upload or generate the index.")
+
 
 def chunk_text(text, chunk_size=1000, chunk_overlap=200):
     """
@@ -36,20 +65,10 @@ def search(query_text, k=3):
     FAISS를 사용하여 유사 문서 검색
     """
     try:
-        # FAISS 인덱스 로드
-        embeddings = UpstageEmbeddings(
-            st.secrets.get("UPSTAGE_API_KEY"),
-            model="embedding-query"
-        )
-        vectorstore = FAISS.load_local(
-            "faiss_index", 
-            embeddings,
-            allow_dangerous_deserialization=True  # pickle 파일 로드 허용
-        )
-        
         # 검색 수행
         results = vectorstore.similarity_search_with_score(query_text, k=k)
-        
+        logger.info(f"Search returned {len(results)} results: {results}")
+
         # 결과 포맷팅
         formatted_results = []
         for doc, score in results:
@@ -85,7 +104,7 @@ def search(query_text, k=3):
         
         return formatted_results
     except Exception as e:
-        print(f"검색 중 오류 발생: {str(e)}")
+        logger.info(f"검색 중 오류 발생: {str(e)}")
         return []
 
 def embed(text):
@@ -96,10 +115,6 @@ def embed(text):
     Returns:
         numpy.ndarray: 임베딩 벡터
     """
-    embeddings = UpstageEmbeddings(
-        st.secrets.get("UPSTAGE_API_KEY"),
-        model="embedding-query"
-    )
     
     # 임베딩 생성
     response = embeddings.embed_query(text)
