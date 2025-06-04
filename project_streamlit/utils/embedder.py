@@ -12,7 +12,7 @@ def embed(text):
         text: 문자열 또는 문자열 리스트
     """
     embeddings = UpstageEmbeddings(
-        api_key=st.secrets["UPSTAGE_API_KEY"],
+        st.secrets.get("UPSTAGE_API_KEY"),
         model="embedding-query"
     )
     

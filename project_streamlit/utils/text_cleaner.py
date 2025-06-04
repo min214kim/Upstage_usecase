@@ -47,6 +47,8 @@ def clean(text, progress_callback=None):
     api_keys = []
     i = 1
     while True:
+        if i > 7: # streamlit 오류때문에 추가 
+            break
         key = st.secrets.get(f"UPSTAGE_API_KEY_{i}")
         if not key:
             break

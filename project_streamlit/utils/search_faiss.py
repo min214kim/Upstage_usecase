@@ -39,7 +39,7 @@ def search(query_text, k=3):
     try:
         # FAISS 인덱스 로드
         embeddings = UpstageEmbeddings(
-            api_key=st.secrets["UPSTAGE_API_KEY"],
+            st.secrets.get("UPSTAGE_API_KEY"),
             model="embedding-query"
         )
         vectorstore = FAISS.load_local(
@@ -98,7 +98,7 @@ def embed(text):
         numpy.ndarray: 임베딩 벡터
     """
     embeddings = UpstageEmbeddings(
-        api_key=st.secrets["UPSTAGE_API_KEY"],
+        st.secrets.get("UPSTAGE_API_KEY"),
         model="embedding-query"
     )
     
