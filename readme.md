@@ -142,6 +142,8 @@ https://streamlit.io/cloud 에서 로그인 후, "New app" 클릭
 
 GitHub 저장소 선택 및 브랜치 / 실행 파일 경로 설정 (app.py)
 
+env.exmple의 형식에 맞춰 secret에 env 입력
+
 3. **배포 및 사용**
 
 자동으로 앱이 빌드되어 배포됩니다.
