@@ -111,4 +111,41 @@
 
 ---
 
-> 기능 명세서 및 파이프라인에 대한 변경사항은 슬랙에서 논의 후 문서 내 노란색 표시로 업데이트될 예정입니다.
+### 9. 배포 가이드
+
+이 프로젝트는 Streamlit을 사용하여 제작된 웹 애플리케이션입니다. 아래의 방법으로 로컬에서 실행하거나 Streamlit Cloud에 배포할 수 있습니다.
+
+#### 9-1 로컬 실행
+
+1. **필수 라이브러리 설치**
+
+pip install -r requirements.txt
+
+2. **앱 실행**
+
+streamlit run app.py
+
+#### 9-2 Streamlit Cloud 배포
+
+1. **☁️ Streamlit Cloud 배포**
+GitHub 저장소 준비
+
+프로젝트 코드를 GitHub에 업로드합니다.
+
+app.py가 루트 또는 지정된 폴더에 있어야 합니다.
+
+requirements.txt 파일 포함 필수입니다.
+
+2. **Streamlit Cloud 접속**
+
+https://streamlit.io/cloud 에서 로그인 후, "New app" 클릭
+
+GitHub 저장소 선택 및 브랜치 / 실행 파일 경로 설정 (app.py)
+
+3. **배포 및 사용**
+
+자동으로 앱이 빌드되어 배포됩니다.
+
+배포 후 생성된 URL로 접근 가능
+
+
