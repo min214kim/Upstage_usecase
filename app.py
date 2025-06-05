@@ -23,7 +23,33 @@ set_verbose(True)
 
 st.set_page_config(page_title="상담 기록 분석", layout="wide")
 
-st.title("📝 상담 기록 분석 데모")
+st.title("🪽 마음한켠")
+st.markdown(
+    ":violet-badge[:material/star: 마음을 담아] :orange-badge[:material/manage_search: 상담 기록 분석 툴] :gray-badge[Demo/데모] :blue-badge[:material/smart_toy: Upstage]"
+)
+
+st.markdown("""
+    #### 데모 가이드 및 목적 설명
+
+    현장의 상담 기록은 분석 불가능한 형태로 축적, 사례 관리자의 기억과 관리 능력에 의존하기에는 상담 기록이 너무 많아 업무의 비효율성 증대
+    -> 본 데모를 통해 Upstage의 Document Digitization API와 Solar Embedding/LLM 기능을 바탕으로 상담 기록 유형 분석 및 알림 자동화""")
+st.markdown("""
+    #### 데모 기능 
+    - PDF로 구성된 상담 기록 자동 구조화, 분석
+    - 유사 사례 추출 및 제시
+    - 유사 사례에 기반한 상담 기록 분석
+    - 위험 사례 감지 시, 관리자에게 이메일 발송
+    """)
+st.markdown(
+    """
+    #### 기대 효과
+    <p style="margin: 0.3em 0;">✔ Save time: 반복적 수작업 감소</p>
+    <p style="margin: 0.3em 0;">✔ Save money: 행정 비용 절감</p>
+    <p style="margin: 0.3em 0;">✔ Market scalability: 아동상담 외 의료, 심리, 복지 등 타 분야 확장 가능</p>
+    <div style="height: 30px;"></div>
+    """, 
+    unsafe_allow_html=True
+    )
 
 # PDF 업로드를 위한 컨테이너
 upload_container = st.container(border=True)
