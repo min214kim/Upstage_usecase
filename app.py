@@ -1,3 +1,5 @@
+import asyncio
+from threading import Lock
 import streamlit as st
 import os
 from utils import document_parser, text_cleaner, summarizer, embedder, search_faiss, classifier, mailer, renderer
@@ -95,14 +97,27 @@ if "uploaded_file" in st.session_state:
         chunks = text_cleaner.chunk_text(raw_text)
         total_chunks = len(chunks)
         
-        def update_progress(chunk_num):
-            base_progress = 10  # 이전 단계의 진행률
-            chunk_progress = (chunk_num / total_chunks) * 40  # 청크 처리 진행률
-            total_progress = base_progress + chunk_progress
-            progress_container.progress(int(total_progress), f"텍스트 정제 중... ({chunk_num}/{total_chunks})")
+        def make_progress_callback(total_chunks, progress_container):
+            completed = {"count": 0}
+            lock = Lock()
+
+            def update_progress():
+                with lock:
+                    completed["count"] += 1
+                    chunk_num = completed["count"]
+                    base_progress = 10
+                    chunk_progress = (chunk_num / total_chunks) * 40
+                    total_progress = base_progress + chunk_progress
+                    progress_container.progress(
+                        min(100, int(total_progress)),
+                        f"텍스트 정제 중... ({chunk_num}/{total_chunks})"
+                    )
+
+            return update_progress
         
         # 진행률 업데이트 콜백 함수를 전달
-        clean_text = text_cleaner.clean(raw_text, progress_callback=update_progress)
+        update_progress = make_progress_callback(len(chunks), progress_container)
+        clean_text = asyncio.run(text_cleaner.clean_async(raw_text, progress_callback=update_progress))
         progress_container.progress(50, "텍스트 정제 완료")
 
         # 4. 요약 
