@@ -24,7 +24,12 @@ def render_summary_text(summary_text: str):
             for line in section_body_raw.splitlines():
                 if ":" in line:
                     key, value = line.split(":", 1)
-                    st.markdown(f"**{key.strip()}**: {value.strip()}")
+
+                    key_stripped = key.strip()
+                    if(key_stripped == "심각도"):
+                        st.markdown(f"**{key.strip()}**: {value.strip()}", help="왼쪽 사이드바 \"심각도 측정 정의\" 참조 바랍니다.")
+                    else:
+                        st.markdown(f"**{key.strip()}**: {value.strip()}")
                 else:
                     st.markdown(f"{line.strip()}")
 

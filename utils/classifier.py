@@ -8,7 +8,7 @@ import streamlit as st
 
 def classify(summary, similar_cases):
     """
-    상담 분류 및 위험도 평가
+    상담 분류 및 심각도 평가
     """
     chat = ChatUpstage(api_key=st.secrets.get("UPSTAGE_API_KEY"), model="solar-mini", temperature=0.2)
     
@@ -24,7 +24,7 @@ def classify(summary, similar_cases):
     
     {{
         "type": "상담 유형 (일반/위기/응급)",
-        "risk_level": "위험도 (1-5)",
+        "risk_level": "심각도 (1-5)",
         "abuse_type": "학대 유형 (해당없음/신체적/정서적/성적/방임)",
     }}
     
@@ -50,7 +50,6 @@ def classify(summary, similar_cases):
         
         # JSON 파싱
         classification = json.loads(response_text)
-        classification["risk_level"] = int(classification["risk_level"])
         
         # timestamp 직접 설정
         classification["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

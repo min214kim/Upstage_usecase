@@ -271,7 +271,7 @@ if st.session_state.result:
                 info["상담유형"] = info.get("유형구분", "정보 없음")
                 info["상담자"] = info.get("작성자(상담사)", "정보 없음")
                 info["상담일"] = info.get("상담일자", "정보 없음")
-                info["위험도"] = info.get("위기단계", "정보 없음")
+                info["심각도"] = info.get("위기단계", "정보 없음")
                 info["학대유형"] = info.get("학대의심", "정보 없음")
                 
                 # 상세 정보 표시
@@ -285,7 +285,7 @@ if st.session_state.result:
 
                 with col2:
                     st.write("**상담 유형:**", info.get("상담유형"))
-                    st.write("**위험도:**", info.get("위험도"))
+                    st.markdown(f"**심각도:** {info.get("심각도")}", help="왼쪽 사이드바 \"심각도 측정 정의\" 참조 바랍니다.")
                     st.write("**학대 유형:**", info.get("학대유형"))
                     st.write("**학년:**", info.get("학년", "정보 없음"))
                     st.write("**가정환경:**", info.get("가정환경", "정보 없음"))
@@ -312,25 +312,25 @@ if st.session_state.result:
 
             classification_data = res.classification
             case_type = classification_data.get('type', '분류되지 않음')
-            risk_level = res.classification.get("risk_level", 0)
+            risk_level = res.classification.get("risk_level", "0")
             abuse_type = res.classification.get("abuse_type", "해당없음")
             timestamp = classification_data.get('timestamp', '')
             
             col1, col2 = st.columns(2)
             with col1:
                 st.write("**상담 유형:**", case_type)
-                st.write("**위험도:**", f"{risk_level}/5")
+                st.markdown(f"**심각도:** {risk_level}/5", help="왼쪽 사이드바 \"심각도 측정 정의\" 참조 바랍니다.")
             with col2:
                 st.write("**학대 유형:**", abuse_type)
                 st.write("**처리 시간:**", timestamp)
             
             st.divider()
 
-            if risk_level >= 3 or abuse_type != "해당없음":
+            if int(risk_level) >= 3 or abuse_type != "해당없음":
                 processing_container.warning("🚨 위험 상담 감지됨! 관리자에게 메일 발송 권장합니다.") # 진행 상태 표시 위치에 표시
                 st.warning("⚠️ **위험 처리:** 아래 메일 보내기 확인하세요.")
 
-        if risk_level >= 3 or abuse_type != "해당없음":
+        if int(risk_level) >= 3 or abuse_type != "해당없음":
             with st.container(border=True):
                 # 위험 알림 메일 보내기
                 st.markdown("##### 📮위험 알림 메일 보내기")
@@ -342,9 +342,17 @@ if st.session_state.result:
                     sender_password = st.secrets.get("SENDER_PASSWORD", "")
                     receiver_email = st.secrets.get("RECEIVER_EMAIL", "")
 
-                    user_email = st.text_input("발신자 이메일:", value=sender_email, placeholder="your.email@example.com")
-                    user_email_password = st.text_input("앱 비밀번호:", value=sender_password, type="password", placeholder="**** **** **** ****")
-                    destination_email = st.text_input("수신자 이메일:", value=receiver_email, placeholder="receiver.email@example.com")
+                    user_email = st.text_input("발신자 이메일:", 
+                                               value=sender_email, 
+                                               placeholder="your.email@example.com")
+                    user_email_password = st.text_input("앱 비밀번호:", 
+                                                        value=sender_password, 
+                                                        type="password", 
+                                                        placeholder="**** **** **** ****", 
+                                                        help="왼쪽 사이드바에서 \"Gmail 앱 비밀번호 발급 가이드\" 참조 바랍니다.")
+                    destination_email = st.text_input("수신자 이메일:", 
+                                                      value=receiver_email, 
+                                                      placeholder="receiver.email@example.com")
 
                 with mailcol2:
                     # 메일 본문 (수정 금지)
@@ -352,12 +360,12 @@ if st.session_state.result:
                     default_body = f"""\
 안녕하세요, 담당자님.
 
-마음 한켠, 상담 기록 분석 서비스를 통해 위험도가 높은 상담 사례가 감지되어 아래와 같이 알려드립니다.
+마음 한켠, 상담 기록 분석 서비스를 통해 심각도가 높은 상담 사례가 감지되어 아래와 같이 알려드립니다.
 즉각적인 확인 및 조치를 부탁드립니다.
 
 🧾 상담 분석 요약
 상담 유형: {case_type}
-위험도 점수: {risk_level} / 5
+심각도 점수: {risk_level} / 5
 감지된 학대 유형: {abuse_type}
 
 상담 요약:
