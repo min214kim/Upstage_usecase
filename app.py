@@ -85,18 +85,23 @@ with upload_container:
                 data = open(path, "rb").read()
                 with col:
                     st.download_button(
-                        label=f"예제{i}.pdf",
+                        label=f"예시{i}.pdf",
                         data=data,
                         file_name=f"상담기록_예시{i}.pdf",
                         mime="application/pdf",
                         icon=":material/download:",
-                        key=f"dl{i}"
+                        key=f"dl{i}",
+                        help=f"예시 PDF 상담기록_예시{i}.pdf 다운로드"
                     )
             else:
                 with col:
                     st.warning(f"예시{i}.pdf 없음")
 
-    uploaded_file = st.file_uploader("📄 상담 기록 PDF 업로드", type=["pdf"])
+    pdf_image_path = "document_example\예시 문서 사진\예시1_screenshot.png"
+    with st.expander("ℹ️ 예시 PDF 보기"):
+        st.image(pdf_image_path, caption="이런 형태의 PDF 올려주세요!")
+
+    uploaded_file = st.file_uploader("", help="상담 기록 PDF 파일을 여기 업로드 해주세요!", type=["pdf"])
 
     if uploaded_file:
         st.session_state["uploaded_file"] = uploaded_file
