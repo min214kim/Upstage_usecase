@@ -27,31 +27,49 @@ st.set_page_config(page_title="상담 기록 분석", layout="wide")
 
 st.title("🪽 마음한켠")
 st.markdown(
-    ":violet-badge[:material/star: 마음을 담아] :orange-badge[:material/manage_search: 상담 기록 분석 툴] :gray-badge[Demo/데모] :blue-badge[:material/smart_toy: Upstage]"
+    ":violet-badge[:material/star: 마음을 담아] :orange-badge[:material/manage_search: Upstage Solar Embedding] :blue-badge[:material/smart_toy: Upstage Solar Pro] :gray-badge[Demo/데모]"
 )
 
-st.markdown("""
-    #### 데모 가이드 및 목적 설명
+st.markdown(
+    """
+    #### 📝 상담 기록, 이제는 AI가 자동으로 정리해드립니다.
 
-    현장의 상담 기록은 분석 불가능한 형태로 축적, 사례 관리자의 기억과 관리 능력에 의존하기에는 상담 기록이 너무 많아 업무의 비효율성 증대
-    -> 본 데모를 통해 Upstage의 Document Digitization API와 Solar Embedding/LLM 기능을 바탕으로 상담 기록 유형 분석 및 알림 자동화""")
-st.markdown("""
-    #### 데모 기능 
-    - PDF로 구성된 상담 기록 자동 구조화, 분석
-    - 유사 사례 추출 및 제시
-    - 유사 사례에 기반한 상담 기록 분석
+    비영리 현장에서 매일 쌓이는 상담 보고서,<br>
+    일일이 열어보고 정리하느라 지치셨죠?
+
+    이 데모는 여러분의 업무를 덜어주기 위해 만들어졌습니다.<br>
+    PDF 상담 기록을 업로드만 하면,<br>
+    
+    ###### AI가 자동으로 다음 작업을 수행합니다:
+    
+    - PDF로 구성된 상담 기록 자동 구조화, 핵심 내용 요약 (누구, 어떤 문제, 어떤 감정 상태인지)
+    - 유사 사례 자동 탐색 (과거 사례 기반한 상담 기록 분석해 얼마나 비슷한지 분석)
+    - 위기 등급 자동 분류 (일반/위기/응급, 학대 유형 포함)
     - 위험 사례 감지 시, 관리자에게 이메일 발송
+    """, 
+    unsafe_allow_html=True)
+st.markdown("""
+    ###### 📌 누구에게 추천하나요?
+            
+    - 아동·청소년 상담, 위기 개입, 사례관리를 수행하는 NGO/NPO 담당자 
+    - 상담 내용을 체계적으로 정리하고, 위기 징후에 빠르게 대응하고 싶은 분
+    - 수작업 업무를 줄이고, 실무에 집중하고 싶은 실무자
     """)
 st.markdown(
     """
-    #### 기대 효과
-    <p style="margin: 0.3em 0;">✔ Save time: 반복적 수작업 감소</p>
-    <p style="margin: 0.3em 0;">✔ Save money: 행정 비용 절감</p>
-    <p style="margin: 0.3em 0;">✔ Market scalability: 아동상담 외 의료, 심리, 복지 등 타 분야 확장 가능</p>
+    ###### 💡 이 데모로 기대할 수 있는 효과
+    <p style="margin: 0.1em 0;">✔ Save time! 반복적 수작업 감소</p>
+    <p style="margin: 0.1em 0;">✔ Real-time Monitoring! 놓치기 쉬운 위험 징후 실시간 감지</p>
+    <p style="margin: 0.1em 0;">✔ Fast & Accurate! 사례 대응의 정확도와 속도 향상</p>
     <div style="height: 30px;"></div>
     """, 
     unsafe_allow_html=True
     )
+st.markdown(
+    """
+    ###### 👇 지금 바로 여러분의 상담 기록 PDF를 업로드해 보세요!
+    """, 
+    unsafe_allow_html=True)
 
 # PDF 업로드를 위한 컨테이너
 upload_container = st.container(border=True)
