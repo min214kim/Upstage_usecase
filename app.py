@@ -244,17 +244,17 @@ if "uploaded_file" in st.session_state:
                                 mime="application/json"
                             )
 
-        # 7. 위험 알림
+        # 7. 위험 메일 알림
         with tab3:
             if classification.get("emergency_level", 0) >= 3 or classification.get("abuse_type", "해당없음") != "해당없음":
-                with st.spinner("🚨 위험 알림 발송 중..."):
+                with st.spinner("🚨 위험 메일 발송 중..."):
                     mailer.send_alert({
                         "type": classification.get("problem_type", ""),
                         "risk_level": classification.get("emergency_level", 0),
                         "abuse_type": classification.get("abuse_type", "해당없음"),
                         "timestamp": classification.get("timestamp", "")
                     })
-                    processing_container.warning("🚨 위험 상담 감지됨! 관리자에게 알림 발송됨") # 진행 상태 표시 위치에 표시
+                    processing_container.warning("🚨 위험 상담 감지됨! 관리자에게 메일 발송됨. ") # 진행 상태 표시 위치에 표시
 
             # 8. 로그
             st.subheader("📊 상담 분석 결과 및 자동화 메일 발송")
@@ -275,10 +275,10 @@ if "uploaded_file" in st.session_state:
                 if classification.get("emergency_level", 0) >= 3 or classification.get("abuse_type", "해당없음") != "해당없음":
                     st.warning(
                         f"""
-                        **🚨 위험 알림**
-                        - 알림 발송: ✅ 완료
+                        **🚨 위험 메일**
+                        - 메일 발송: ✅ 완료
                         - 발송 시간: {classification.get('timestamp', '')}
-                        - 알림 유형: {classification.get('problem_type', '')}
+                        - 메일 유형: {classification.get('problem_type', '')}
                         - 위험 수준: {classification.get('risk_level', '0')}/5
                         """, icon="⚠️"
                     )
