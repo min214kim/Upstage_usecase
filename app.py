@@ -66,7 +66,7 @@ with processing_container.container(border=True):
     status_container.info("")
 
 # 결과 표시 탭
-tab1, tab2, tab3 = st.tabs(["🧠 상담 요약", "🔍 유사 사례", "🕒 처리 로그"])
+tab1, tab2, tab3 = st.tabs(["🧠 현 상담 내용 요약", "🔍 과거 유사 사례 보기", "📊 상담 분석 결과 및 자동화 메일 발송"])
 
 # -----------------------
 # 데이터 처리 및 분석 수행
@@ -188,12 +188,12 @@ if "uploaded_file" in st.session_state:
                 st.text_area("정제된 텍스트", clean_text, height=200)
 
             # 구조화된 요약 결과
-            st.subheader("🧠 상담 요약 결과")
+            st.subheader("🧠 현 상담 내용 요약")
             renderer.render_summary_text(summary)  # 요약 텍스트를 그대로 표시
 
         # 유사사례 요약 카드
         with tab2:
-            st.subheader("🔍 유사 사례")
+            st.subheader("🔍 과거 유사 사례 보기")
             for i, case in enumerate(similar_cases):
                with st.expander(f"유사 사례 {i+1} (유사도: {case.get('score', 0):.2f})", expanded=False):
                     st.markdown("##### 🧾 상세 정보")
@@ -257,7 +257,7 @@ if "uploaded_file" in st.session_state:
                     processing_container.warning("🚨 위험 상담 감지됨! 관리자에게 알림 발송됨") # 진행 상태 표시 위치에 표시
 
             # 8. 로그
-            st.subheader("🕒 처리 로그")
+            st.subheader("📊 상담 분석 결과 및 자동화 메일 발송")
             log_container = st.container(border=True)
             with log_container:
                 st.markdown("#### 📊 분석 결과")
