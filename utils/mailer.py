@@ -28,13 +28,7 @@ def send_alert_email(text_subject: str, text_body: str,
     """
     return_msg = ""
 
-    try:
-        # 필수 시크릿 확인
-        required = ["SMTP_SERVER","SMTP_PORT"]
-        for k in required:
-            if k not in st.secrets:
-                return f"설정 오류: st.secrets['{k}'] 값이 누락되었습니다."
-            
+    try:            
         logger.info(f"Sending email using {sender_email} to {receiver_email}")
             
         # 메일 서버 설정
@@ -44,8 +38,8 @@ def send_alert_email(text_subject: str, text_body: str,
             sender_password = st.secrets.get("SENDER_PASSWORD", "")
         if not receiver_email:
             receiver_email = st.secrets.get("RECEIVER_EMAIL", "")
-        smtp_server = st.secrets["SMTP_SERVER"]
-        smtp_port = int(st.secrets["SMTP_PORT"])
+        smtp_server = st.secrets.get("SMTP_SERVER", "smtp.gmail.com")
+        smtp_port = int(st.secrets.get("SMTP_PORT", "587"))
 
         if not isinstance(smtp_port, int):
             return "SMTP 포트 설정 오류: 올바른 숫자여야 합니다."
@@ -70,7 +64,7 @@ def send_alert_email(text_subject: str, text_body: str,
             server.login(sender_email, sender_password)
             server.send_message(msg)
 
-        return_msg = receiver_email
+        return_msg = f"이메일 주소 {receiver_email}로 메일이 발송되었습니다." 
         return True, return_msg  # success
     except ValueError:
         return_msg = "SMTP 포트 설정 오류: 올바른 숫자여야 합니다."

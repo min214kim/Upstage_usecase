@@ -7,7 +7,7 @@ import os
 
 import streamlit as st
 from langchain.globals import set_verbose
-from utils import document_parser, text_cleaner, summarizer, embedder, search_faiss, classifier, mailer, renderer
+from utils import document_parser, text_cleaner, summarizer, embedder, search_faiss, classifier, mailer, renderer, sidebar
 
 
 import logging
@@ -37,7 +37,11 @@ class AnalysisResult:
 if "result" not in st.session_state:
     st.session_state.result = None
 
+# streamlit 페이지 설정
 st.set_page_config(page_title="상담 기록 분석", layout="wide")
+
+# 도움말 출력 
+sidebar.init_sidebar()
 
 st.title("🪽 마음한켠")
 st.markdown(
@@ -104,34 +108,7 @@ tab1, tab2, tab3 = st.tabs(["🧠 Step 1: 현 상담 내용 요약", "🔍 Step 
 # PDF 업로드 단계
 # -----------------------
 
-pdf_dir = img_path = os.path.join("document_example", "업스테이지 예시 문서")
-
 with upload_container:
-    for start in range(1, 5, 2):            # 1, then 3
-        cols = st.columns(4)
-        for offset, col in enumerate(cols[:2]):
-            i = start + offset            # maps to 1→col0, 2→col1 then 3→col0, 4→col1
-            path = os.path.join(pdf_dir, f"예시{i}.pdf")
-            if os.path.isfile(path):
-                data = open(path, "rb").read()
-                with col:
-                    st.download_button(
-                        label=f"예시{i}.pdf",
-                        data=data,
-                        file_name=f"상담기록_예시{i}.pdf",
-                        mime="application/pdf",
-                        icon=":material/download:",
-                        key=f"dl{i}",
-                        help=f"예시 PDF 상담기록_예시{i}.pdf 다운로드"
-                    )
-            else:
-                with col:
-                    st.warning(f"예시{i}.pdf 없음")
-
-    pdf_image_path = os.path.join("document_example", "예시 문서 사진", "예시1_screenshot.png")
-    with st.expander("ℹ️ 예시 PDF 보기"):
-        st.image(pdf_image_path, caption="이런 형태의 PDF 올려주세요!")
-
     uploaded_file = st.file_uploader("", help="상담 기록 PDF 파일을 여기 업로드 해주세요!", type=["pdf"])
 
     if uploaded_file:
@@ -366,7 +343,7 @@ if st.session_state.result:
                     receiver_email = st.secrets.get("RECEIVER_EMAIL", "")
 
                     user_email = st.text_input("발신자 이메일:", value=sender_email, placeholder="your.email@example.com")
-                    user_email_password = st.text_input("앱 비밀번호:", value=sender_password,type="password")
+                    user_email_password = st.text_input("앱 비밀번호:", value=sender_password, type="password", placeholder="**** **** **** ****")
                     destination_email = st.text_input("수신자 이메일:", value=receiver_email, placeholder="receiver.email@example.com")
 
                 with mailcol2:
@@ -396,7 +373,7 @@ AI 분석 시각: {timestamp}
 """
 
                     user_subject = st.text_input("주제:", value=default_subject)
-                    user_body = st.text_area("메일 본문:", height=500, value=default_body)
+                    user_body = st.text_area("메일 본문:", height=600, value=default_body)
 
                     if st.button("📨 메일 보내기"):
                         with st.spinner("메일 발송 중..."):
@@ -413,4 +390,3 @@ AI 분석 시각: {timestamp}
                             st.toast(msg, icon='❌')
         else:
             st.info("✅ **정상 처리:** 위험 수준이 낮아 메일이 발송되지 않았습니다.")
-
