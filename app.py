@@ -72,8 +72,30 @@ tab1, tab2, tab3 = st.tabs(["🧠 상담 요약", "🔍 유사 사례", "🕒 �
 # 데이터 처리 및 분석 수행
 # -----------------------
 
-# 1. PDF 업로드
+# 1. PDF 업로드 (예시 PDF 추가)
+pdf_dir = "document_example/업스테이지 예시 문서"
+
 with upload_container:
+    for start in range(1, 5, 2):            # 1, then 3
+        cols = st.columns(4)
+        for offset, col in enumerate(cols[:2]):
+            i = start + offset            # maps to 1→col0, 2→col1 then 3→col0, 4→col1
+            path = os.path.join(pdf_dir, f"예시{i}.pdf")
+            if os.path.isfile(path):
+                data = open(path, "rb").read()
+                with col:
+                    st.download_button(
+                        label=f"예제{i}.pdf",
+                        data=data,
+                        file_name=f"상담기록_예시{i}.pdf",
+                        mime="application/pdf",
+                        icon=":material/download:",
+                        key=f"dl{i}"
+                    )
+            else:
+                with col:
+                    st.warning(f"예시{i}.pdf 없음")
+
     uploaded_file = st.file_uploader("📄 상담 기록 PDF 업로드", type=["pdf"])
 
     if uploaded_file:
