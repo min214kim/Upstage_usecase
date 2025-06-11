@@ -50,6 +50,7 @@ def classify(summary, similar_cases):
         
         # JSON 파싱
         classification = json.loads(response_text)
+        classification["risk_level"] = int(classification["risk_level"])
         
         # timestamp 직접 설정
         classification["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
