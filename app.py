@@ -343,7 +343,7 @@ if st.session_state.result:
                     receiver_email = st.secrets.get("RECEIVER_EMAIL", "")
 
                     user_email = st.text_input("발신자 이메일:", value=sender_email, placeholder="your.email@example.com")
-                    user_email_password = st.text_input("앱 비밀번호:", value=sender_password, type="password", placeholder="**** **** **** ****")
+                    user_email_password = st.text_input("앱 비밀번호:", value=sender_password, type="password", placeholder="**** **** **** ****", help="왼쪽 사이드바에서 \"Gmail 앱 비밀번호 발급 가이드\" 참조 바랍니다.")
                     destination_email = st.text_input("수신자 이메일:", value=receiver_email, placeholder="receiver.email@example.com")
 
                 with mailcol2:
