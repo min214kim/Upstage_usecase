@@ -21,6 +21,7 @@
 3.  **유사 사례 추천**: 시스템에 구축된 AI-Hub 상담 데이터베이스에서 현재 상담과 가장 유사한 과거 사례 3건을 찾아 보여주어 대응 방안 수립에 참고할 수 있습니다.
 4.  **위험 알림**: 만약 분석 결과 '학대'와 같은 고위험 징후가 감지되면, 시스템은 자동으로 담당 팀장에게 위험 상황을 알리는 이메일을 발송합니다.
 
+---
 
 ## 3. 기능 요약 (Features)
 
@@ -54,6 +55,8 @@
 | 7 | Solar LLM 분류     | 상담 유형, 위기 단계, 학대 유형 분류    | 정제 텍스트 | 분류 결과 (JSON) |                |
 | 8 | 위험 알림            | 위기단계≥3 또는 학대≠없음일 경우 메일 발송 | 분류 결과  | 메일 전송 로그     |                |
 | 9 | 대시보드             | 요약, 유형, 유사사례, 로그 시각화      | 전체 결과  | 웹 페이지        | Streamlit 등 사용 |
+
+---
 
 ## 4. 프로젝트 구조 (Project Structure)
 본 프로젝트의 소스 코드 구조는 다음과 같으며, 이는 개발 및 유지보수를 위한 참고 자료입니다. 최종 사용자는 웹 애플리케이션의 UI를 통해서만 서비스와 상호작용합니다.
@@ -91,6 +94,8 @@
 └── test.py                # 테스트 코드 파일
 ```
 
+---
+
 ## 5. 설치 및 실행 방법 (Installation & Execution)
 
 **1. 서비스 접속**
@@ -101,7 +106,8 @@
 
 - 본 서비스는 Upstage API 키와 이메일 서버 정보 등 민감한 정보를 배포 환경의 환경 변수(Environment Variables) 또는 Secrets 관리 기능을 통해 설정합니다.
 - 로컬 개발 시 사용되는 .env 파일은 서버 배포 환경에서는 사용되지 않으며, 관리자는 배포 플랫폼(예: Streamlit Community Cloud, AWS, Google Cloud)의 설정 메뉴에서 직접 API 키를 안전하게 입력해야 합니다.
-=
+
+---
 
 ## 6. 사용 방법 (How to Use) 
 
@@ -133,6 +139,7 @@
 - 메일 발송 관련 가이드는 화면 왼쪽의 사이드바를 참고해주세요.
 ![상담 분석 결과 보기 및 메일 발송기](./images/결과3.png)
 
+---
 
 ## 7. 주요 의존성 (Dependencies)
 본 프로젝트는 `requirements.txt`에 명시된 라이브러리들을 사용합니다. 
@@ -153,10 +160,16 @@ faiss-cpu>=1.7.4
 Email support
 secure-smtplib
 ```
+
+---
+
+
 ## 8. API 설명 (API Description)
 -   **Upstage Document AI API**: PDF 문서의 레이아웃을 분석하고 텍스트를 추출(OCR)하는 데 사용됩니다.
 -   **Upstage Solar LLM API**: 추출된 텍스트를 기반으로 내용을 요약하고, 상담 유형, 위기 단계, 학대 유형을 분류하는 데 사용됩니다.
 -   **Upstage Embedding API**: 정제된 텍스트를 고차원 벡터로 변환하여 유사도 기반 검색이 가능하도록 합니다.
+
+---
 
 ## 9. 결과 예시 / 캡처 (Sample Output)
 **1. 현 상담 내용 요약** 
@@ -169,11 +182,33 @@ secure-smtplib
 
 **3. 위험 분석 결과 보기 및 메일 발송 (위험도)** 
 ![상담 분석 결과 보기 및 메일 발송기](./images/결과3.png)
+
+---
+
 ## 10. 주의사항 및 한계 (Limitations & Notes)
 - **API Key 관리**: 서비스 배포 환경(예: Streamlit Community Cloud, AWS Secrets Manager 등)에 설정된 Upstage API 키가 외부에 노출되지 않도록 안전하게 관리해야 합니다. 소스 코드나 공개된 저장소에 API 키를 직접 포함하지 마십시오.
 - **데이터 의존성**: 유사 사례 추천 기능의 정확도는 faiss_index에 구축된 AI-Hub 상담 데이터에 의존합니다.
 - **문서 형식**: 현재 시스템은 텍스트 기반의 PDF 상담 기록에 최적화되어 있으며, 복잡한 표나 이미지가 포함된 문서에서는 성능이 저하될 수 있습니다.
+  
+---
 
 ## 11. 기여자 및 라이선스 (Contributors / License)
--   **Contributors**: 송휘린, 윤희찬, 문찬우, 김민서, 방준현
--   **License**: **정보 부족**: 프로젝트에 적용된 라이선스 정보가 제공되지 않았습니다.
+### Contributors
+윤희찬, 김민서, 문찬우, 방준현, 송휘린
+  
+<a href="https://github.com/quant-jason">
+  <img src="https://github.com/quant-jason.png" width="50px" alt="윤희찬"/>
+</a>
+<a href="https://github.com/min214kim">
+  <img src="https://github.com/min214kim.png" width="50px" alt="김민서"/>
+</a>
+<a href="https://github.com/urbanking">
+  <img src="https://github.com/urbanking.png" width="50px" alt="문찬우"/>
+</a>
+<a href="https://github.com/bindingflare">
+  <img src="https://github.com/bindingflare.png" width="50px" alt="방준현"/>
+</a>
+<a href="https://github.com/Hwiplash">
+  <img src="https://github.com/Hwiplash.png" width="50px" alt="송휘린"/>
+</a>
+
