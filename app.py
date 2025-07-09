@@ -122,7 +122,10 @@ with upload_container:
 if uploaded_file:
     uploaded_file = st.session_state["uploaded_file"]
 
-    if st.session_state.result is None:
+    # API 키가 입력되었는지 확인
+    if "api_keys" not in st.session_state or not st.session_state.api_keys["main"]:
+        st.error("⚠️ API 키가 입력되지 않았습니다. 왼쪽 사이드바에서 Upstage API 키를 입력해주세요.")
+    elif st.session_state.result is None:
         try:
             # 문서 파싱
             status_container.info("📄 PDF 파일 파싱 중...")

@@ -10,7 +10,18 @@ def summarize(text):
     """
     상담 내용을 요약
     """
-    chat = ChatUpstage(api_key=st.secrets["UPSTAGE_API_KEY"], model="solar-pro", temperature=0.2)
+    # 세션 상태에서 API 키 가져오기
+    api_key = None
+    if "api_keys" in st.session_state and st.session_state.api_keys["main"]:
+        api_key = st.session_state.api_keys["main"]
+    else:
+        # 세션 상태에 키가 없으면 secrets 확인 (이전 방식 호환)
+        api_key = st.secrets.get("UPSTAGE_API_KEY")
+    
+    if not api_key:
+        raise ValueError("API 키가 설정되지 않았습니다. 왼쪽 사이드바에서 Upstage API 키를 입력해주세요.")
+    
+    chat = ChatUpstage(api_key=api_key, model="solar-pro", temperature=0.2)
     
     prompt = f"""
     다음 상담 기록을 분석하여 구조화된 형식으로 요약해주세요.

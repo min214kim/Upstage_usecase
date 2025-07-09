@@ -21,21 +21,8 @@ logging.basicConfig(
     ]
 )
 
-# FAISS 인덱스 로드
-embeddings = UpstageEmbeddings(
-    api_key=st.secrets["UPSTAGE_API_KEY"],
-    model="embedding-query"
-)
-
-if os.path.exists("faiss_index/index.faiss") and os.path.exists("faiss_index/index.pkl"):
-    vectorstore = FAISS.load_local(
-        "faiss_index", 
-        embeddings,
-        allow_dangerous_deserialization=True
-    )
-    logger.info(f"Index size: {vectorstore.index.ntotal}")
-else:
-    st.error("FAISS index not found. Please upload or generate the index.")
+# FAISS 인덱스는 함수 호출 시에 로드하도록 변경
+vectorstore = None
 
 
 def chunk_text(text, chunk_size=1000, chunk_overlap=200):
@@ -64,6 +51,36 @@ def search(query_text, k=3):
     """
     FAISS를 사용하여 유사 문서 검색
     """
+    global vectorstore
+    
+    # 세션 상태에서 API 키 가져오기
+    api_key = None
+    if "api_keys" in st.session_state and st.session_state.api_keys["main"]:
+        api_key = st.session_state.api_keys["main"]
+    else:
+        # 세션 상태에 키가 없으면 secrets 확인 (이전 방식 호환)
+        api_key = st.secrets.get("UPSTAGE_API_KEY")
+    
+    if not api_key:
+        raise ValueError("API 키가 설정되지 않았습니다. 왼쪽 사이드바에서 Upstage API 키를 입력해주세요.")
+    
+    # vectorstore가 없으면 로드
+    if vectorstore is None:
+        embeddings = UpstageEmbeddings(
+            api_key=api_key,
+            model="embedding-query"
+        )
+        
+        if os.path.exists("faiss_index/index.faiss") and os.path.exists("faiss_index/index.pkl"):
+            vectorstore = FAISS.load_local(
+                "faiss_index", 
+                embeddings,
+                allow_dangerous_deserialization=True
+            )
+            logger.info(f"Index size: {vectorstore.index.ntotal}")
+        else:
+            raise FileNotFoundError("FAISS index not found. Please upload or generate the index.")
+    
     try:
         # 검색 수행
         results = vectorstore.similarity_search_with_score(query_text, k=k)
@@ -114,6 +131,21 @@ def embed(text):
     Returns:
         numpy.ndarray: 임베딩 벡터
     """
+    # 세션 상태에서 API 키 가져오기
+    api_key = None
+    if "api_keys" in st.session_state and st.session_state.api_keys["main"]:
+        api_key = st.session_state.api_keys["main"]
+    else:
+        # 세션 상태에 키가 없으면 secrets 확인 (이전 방식 호환)
+        api_key = st.secrets.get("UPSTAGE_API_KEY")
+    
+    if not api_key:
+        raise ValueError("API 키가 설정되지 않았습니다. 왼쪽 사이드바에서 Upstage API 키를 입력해주세요.")
+    
+    embeddings = UpstageEmbeddings(
+        api_key=api_key,
+        model="embedding-query"
+    )
     
     # 임베딩 생성
     response = embeddings.embed_query(text)

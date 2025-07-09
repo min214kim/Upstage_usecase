@@ -3,6 +3,49 @@ import streamlit as st
 
 def init_sidebar():
     st.sidebar.title("ℹ️ 도움말")
+    
+    # API 키 입력 섹션
+    with st.sidebar.container(border=True):
+        st.markdown("##### 🔑 Upstage API 설정")
+        
+        # 세션 상태 초기화
+        if "api_keys" not in st.session_state:
+            st.session_state.api_keys = {
+                "main": "",
+                "keys": [""] * 8
+            }
+        
+        # 메인 API 키 입력
+        main_api_key = st.text_input(
+            "Upstage API Key (필수)",
+            value=st.session_state.api_keys["main"],
+            type="password",
+            placeholder="upstage-api-key-here",
+            help="Document AI, Embedding, LLM에 사용될 API 키"
+        )
+        
+        # 병렬 처리용 추가 API 키 (선택사항)
+        with st.expander("🚀 병렬 처리용 추가 API 키 (선택사항)", expanded=False):
+            st.caption("텍스트 정제 속도 향상을 위한 추가 키 (최대 8개)")
+            
+            for i in range(8):
+                key = st.text_input(
+                    f"API Key {i+1}",
+                    value=st.session_state.api_keys["keys"][i],
+                    type="password",
+                    placeholder=f"upstage-api-key-{i+1}",
+                    key=f"api_key_{i}"
+                )
+                st.session_state.api_keys["keys"][i] = key
+        
+        # API 키 저장
+        st.session_state.api_keys["main"] = main_api_key
+        
+        # 유효성 검사
+        if main_api_key:
+            st.success("✅ API 키 입력됨")
+        else:
+            st.warning("⚠️ API 키를 입력해주세요")
 
     # 예시 PDF 다운로드 도움말 출력
     pdf_dir = img_path = os.path.join("document_example", "업스테이지 예시 문서")

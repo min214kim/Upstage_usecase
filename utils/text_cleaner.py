@@ -43,21 +43,36 @@ async def process_chunk_async(index, chunk, api_key, progress_callback):
         return (index, f"[오류 발생: {str(e)}]")
 
 async def clean_async(text, progress_callback=None):
+    # 세션 상태에서 API 키 가져오기
     api_keys = []
-    i = 1
-    while True:
-        key = st.secrets.get(f"UPSTAGE_API_KEY_{i}")
-        if not key:
-            break
-        api_keys.append(key)
-        i += 1
-
+    
+    if "api_keys" in st.session_state:
+        # 병렬 처리용 추가 키들 확인
+        for key in st.session_state.api_keys["keys"]:
+            if key:  # 빈 문자열이 아닌 경우만 추가
+                api_keys.append(key)
+        
+        # 추가 키가 없으면 메인 키 사용
+        if not api_keys and st.session_state.api_keys["main"]:
+            api_keys.append(st.session_state.api_keys["main"])
+    
+    # 세션 상태에 키가 없으면 secrets 확인 (이전 방식 호환)
     if not api_keys:
-        default_key = st.secrets.get("UPSTAGE_API_KEY")
-        if default_key:
-            api_keys.append(default_key)
-        else:
-            raise ValueError("UPSTAGE_API_KEY 환경 변수가 설정되지 않았습니다.")
+        i = 1
+        while True:
+            key = st.secrets.get(f"UPSTAGE_API_KEY_{i}")
+            if not key:
+                break
+            api_keys.append(key)
+            i += 1
+        
+        if not api_keys:
+            default_key = st.secrets.get("UPSTAGE_API_KEY")
+            if default_key:
+                api_keys.append(default_key)
+    
+    if not api_keys:
+        raise ValueError("API 키가 설정되지 않았습니다. 왼쪽 사이드바에서 Upstage API 키를 입력해주세요.")
 
     chunks = chunk_text(text)
     cleaned_chunks = [None] * len(chunks)
